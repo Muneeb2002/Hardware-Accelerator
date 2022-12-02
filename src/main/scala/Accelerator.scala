@@ -17,8 +17,11 @@ class Accelerator extends Module {
   //val dataMemory = Module(new DataMemory())
 
   //State enum and register
-  val startState :: loop1 :: loop2 :: checkborder :: xinc :: checkbelow :: checkRight :: checkLeft :: checkAbove :: saveWhite :: saveBlack :: Nil = Enum(11)
+  val startState :: loop1 :: loop2 :: checkborder :: checkbelow :: checkRight :: checkLeft :: checkAbove :: saveWhite :: saveBlack :: Nil = Enum(10)
   val stateReg = RegInit(startState)
+
+
+
 
   //Support registers
   val addressReg = RegInit(0.U(16.W))
@@ -54,18 +57,13 @@ class Accelerator extends Module {
     }
     is(loop2){
       when( y < 20.U(16.W)){
-        //addressReg := x + 20.U(16.W) * y
         stateReg:=checkborder
       } .otherwise{
-        //stateReg:=xinc
         x := x + 1.U(16.W)
         stateReg := loop1
       }
     }
-    is(xinc){
-      x:= x + 1.U(16.W)
-      stateReg := loop1
-    }
+
     is(checkborder){
       addressReg := x + 20.U(16.W) * y
       when( io.dataRead === 0.U(16.W)||x === 0.U(16.W) || x === 19.U(16.W) || y=== 0.U(16.W) || y === 19.U(16.W)){
@@ -109,14 +107,14 @@ class Accelerator extends Module {
     is(saveBlack){
       io.writeEnable := true.B
       io.address:= (x+20.U(16.W)*y)+400.U(16.W)
-      io.dataWrite := 0.U(32.W)
+      dataReg := 0.U(32.W)
       y := y + 1.U(16.W)
       stateReg:= loop2
     }
     is(saveWhite) {
       io.writeEnable := true.B
       io.address := (x + 20.U(16.W) * y)+400.U(16.W)
-      io.dataWrite := 255.U(32.W)
+      dataReg := 255.U(32.W)
       y := y + 1.U(16.W)
       stateReg := loop2
     }
